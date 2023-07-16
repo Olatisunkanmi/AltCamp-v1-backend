@@ -4,6 +4,7 @@ module.exports = {
 
   ALT_CAMP: 'AltCamp',
   DB_CONNECTED: 'Database connected successfully to',
+  SERVER_RUNNING: 'AltCamp server running on port:',
   ERR_DB_CONNECTION: 'Database connection failed',
 
   ACCOUNT_TYPES: {

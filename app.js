@@ -3,8 +3,7 @@ const Sentry = require('@sentry/node');
 const initializeSentry = require('./middleware/sentry');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const { Logger } = require('./utils');
-const { errorHandler } = require('./utils/errorHandler');
+const { Logger, errorHandler } = require('./utils');
 const cors = require('cors');
 require('express-async-errors');
 const { ALT_CAMP } = require('./constant');
@@ -29,6 +28,7 @@ const appConfig = (app) => {
   app.get('/', (req, res) => {
     res.send('Lets make magic! 🚀');
   });
+
   app.use('/', indexRouter);
   app.use(
     Sentry.Handlers.errorHandler({
