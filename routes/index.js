@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const authRouter = require('../src/auth');
+// const authRouter = require('../src/auth');
+const authRouterV2 = require('../src/auth/authRoute');
 const accountRouter = require('../src/accounts');
 const apiDocs = require('../src/docs');
 const questionsRouter = require('../src/questions');
@@ -11,7 +12,9 @@ const bookmarksRouter = require('../src/bookmarks');
 const tagsRouter = require('../src/tags');
 const tracksRouter = require('../src/tracks');
 
-router.use('/auth', authRouter);
+// router.use('/auth', authRouter);
+router.use('/auth', authRouterV2);
+
 router.use('/accounts', accountRouter);
 router.use('/questions', questionsRouter);
 router.use('/posts', postsRouter);
