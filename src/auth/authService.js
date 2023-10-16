@@ -5,56 +5,82 @@ const { TOKEN_TYPE } = require('../../constant');
 const TokenService = require('../token/tokenService');
 const { BadRequestError } = require('../../utils/customError');
 
-const registerAccount = async (payload) => {
-  let account = await accountsService.accountExists(payload.email);
+/**
+ * @class AuthService
+ * @description Auth service layer
+ */
 
-  if (account) {
-    return false;
+class AuthService {
+  /**
+   * @static registerAccount
+   * @param {object} payload | Payload object
+   * @returns {object} | Returns an object containing the token and user details
+   * @memberof AuthService
+   */
+
+  static async registerAccount(payload) {
+    let account = await accountsService.accountExists(payload.email);
+
+    if (account) {
+      return false;
+    }
+
+    account = await accountsService.createAccount(payload);
+    account = omit(account.toObject(), 'password');
+
+    const token = createToken({
+      id: account._id,
+    });
+
+    return { token, user: account };
   }
 
-  account = await accountsService.createAccount(payload);
-  account = omit(account.toObject(), 'password');
+  /**
+   * @static userLogin
+   * @param {object} payload | Payload object
+   * @returns {object} | Returns an object containing the token and user details
+   * @memberof AuthService
+   */
 
-  const token = createToken({
-    id: account._id,
-  });
+  static async userLogin({ email, password }) {
+    let account = await validateCredentials(email, password);
+    if (!account) {
+      return account;
+    }
 
-  return { token, user: account };
-};
+    const accessToken = createToken({
+      id: account.id,
+    });
+    const user = omit(account.toObject(), 'password', '__v');
 
-const userLogin = async ({ email, password }) => {
-  let account = await validateCredentials(email, password);
-  if (!account) {
-    return account;
+    return {
+      token: accessToken,
+      user,
+    };
   }
 
-  const accessToken = createToken({
-    id: account.id,
-  });
-  const user = omit(account.toObject(), 'password', '__v');
+  /**
+   * @static verifyEmail
+   * @param {object} payload | Payload object
+   * @returns {object} | Returns an object containing the token and user details
+   * @memberof AuthService
+   */
 
-  return {
-    token: accessToken,
-    user,
-  };
-};
+  static async verifyEmail({ requestId, token }) {
+    const key = TOKEN_TYPE.EMAIL_VERIFICATION + requestId;
+    const verificationToken = await TokenService.getToken(key);
+    if (!verificationToken) throw new BadRequestError('Invalid token');
 
-const verifyEmail = async ({ requestId, token }) => {
-  const key = TOKEN_TYPE.EMAIL_VERIFICATION + requestId;
-  const verificationToken = await TokenService.getToken(key);
-  if (!verificationToken) throw new BadRequestError('Invalid token');
+    const user = await accountsService.getSingleAccount(
+      verificationToken.owner
+    );
+    if (!user || !(verificationToken.token === token))
+      throw new BadRequestError('Invalid token');
 
-  const user = await accountsService.getSingleAccount(verificationToken.owner);
-  if (!user || !(verificationToken.token === token))
-    throw new BadRequestError('Invalid token');
+    user.emailIsVerified = true;
+    await user.save();
+    TokenService.deleteToken(key);
+  }
+}
 
-  user.emailIsVerified = true;
-  await user.save();
-  TokenService.deleteToken(key);
-};
-
-module.exports = {
-  registerAccount,
-  userLogin,
-  verifyEmail,
-};
+module.exports = AuthService;

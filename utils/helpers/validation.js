@@ -133,27 +133,5 @@ class ValidationHelper {
         'string.empty': `${param} field cannot be an empty field`,
       });
   }
-
-  /**
-   * It validates a card number with minimun and maximum values
-   * @static
-   * @param { array } fields - An array of enum fields
-   * @param { string } param - The name of the filed to validate
-   * @param  {object} joiObject - the Joi Object
-   * @memberof validationHelper
-   * @returns {Boolean} - True or false
-   */
-  static validateCardNumber(param, joiObject) {
-    return joiObject
-      .string()
-      .required()
-      .creditCard()
-      .messages({
-        'any.required': `${param} is a required field`,
-        'string.base': `${param} must be a string`,
-        'string.empty': `${param} cannot be an empty field`,
-        'string.creditCard': `${param} must be a valid card number`,
-      });
-  }
 }
 module.exports = ValidationHelper;
